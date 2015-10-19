@@ -1,3 +1,4 @@
+// CHECKSTYLE:OFF
 /**
  * Copyright 2013 BigML
  * Licensed under the Apache License, Version 2.0
@@ -8,7 +9,6 @@ package com.bigml.histogram;
 import com.bigml.histogram.Histogram.TargetType;
 import java.io.IOException;
 import java.text.DecimalFormat;
-import org.json.simple.JSONArray;
 
 public class NumericTarget extends Target<NumericTarget> {
 
@@ -51,16 +51,6 @@ public class NumericTarget extends Target<NumericTarget> {
   @Override
   public String toString() {
     return String.valueOf(_sum) + "," + String.valueOf(_sumSquares);
-  }
-
-  @Override
-  protected void addJSON(JSONArray binJSON, DecimalFormat format) {
-    if (_sum == null) {
-      binJSON.add(null);
-    } else {
-      binJSON.add(Utils.roundNumber(_sum, format));
-      binJSON.add(Utils.roundNumber(_sumSquares, format));
-    }
   }
 
   @Override

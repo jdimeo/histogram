@@ -1,3 +1,4 @@
+// CHECKSTYLE:OFF
 /**
  * Copyright 2013 BigML
  * Licensed under the Apache License, Version 2.0
@@ -10,13 +11,11 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map.Entry;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 
 public class MapCategoricalTarget extends Target<MapCategoricalTarget> implements CategoricalTarget {
 
   public MapCategoricalTarget(Object category) {
-    _counts = new HashMap<Object, Double>(1,1);
+    _counts = new HashMap<>(1,1);
     _counts.put(category, 1d);
   }
   
@@ -29,6 +28,7 @@ public class MapCategoricalTarget extends Target<MapCategoricalTarget> implement
     _counts = targetCounts;
   }
   
+  @Override
   public HashMap<Object, Double> getCounts() {
     return _counts;
   }
@@ -44,17 +44,6 @@ public class MapCategoricalTarget extends Target<MapCategoricalTarget> implement
     return TargetType.categorical;
   }
   
-  @Override
-  protected void addJSON(JSONArray binJSON, DecimalFormat format) {
-    JSONObject counts = new JSONObject();
-    for (Entry<Object,Double> categoryCount : _counts.entrySet()) {
-      Object category = categoryCount.getKey();
-      double count = categoryCount.getValue();
-      counts.put(category, Utils.roundNumber(count, format));
-    }
-    binJSON.add(counts);
-  }
-
   @Override
   protected void appendTo(final Appendable appendable, final DecimalFormat format) throws IOException {
     if (appendable == null) {
@@ -98,7 +87,7 @@ public class MapCategoricalTarget extends Target<MapCategoricalTarget> implement
 
   @Override
   protected MapCategoricalTarget clone() {
-    return new MapCategoricalTarget(new HashMap<Object, Double>(_counts));
+    return new MapCategoricalTarget(new HashMap<>(_counts));
   }
 
   @Override

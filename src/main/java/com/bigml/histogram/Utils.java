@@ -1,3 +1,4 @@
+// CHECKSTYLE:OFF
 /**
  * Copyright 2013 BigML
  * Licensed under the Apache License, Version 2.0
@@ -20,6 +21,7 @@ public class Utils {
     try {
       formattedNumber = format.parse(format.format(number));
     } catch (ParseException ex) {
+    	/// Do nothing
     }
     return formattedNumber;
   }

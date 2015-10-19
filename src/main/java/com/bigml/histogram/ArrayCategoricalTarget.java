@@ -1,3 +1,4 @@
+// CHECKSTYLE:OFF
 /**
  * Copyright 2013 BigML
  * Licensed under the Apache License, Version 2.0
@@ -12,8 +13,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 
 public class ArrayCategoricalTarget extends Target<ArrayCategoricalTarget> implements CategoricalTarget {
 
@@ -31,9 +30,8 @@ public class ArrayCategoricalTarget extends Target<ArrayCategoricalTarget> imple
       Integer index = indexMap.get(category);
       if (index == null) {
         throw new MixedInsertException();
-      } else {
-        _target[index]++;
       }
+	_target[index]++;
     }
   }
 
@@ -41,8 +39,9 @@ public class ArrayCategoricalTarget extends Target<ArrayCategoricalTarget> imple
     _indexMap = indexMap;
   }
   
-  public HashMap<Object, Double> getCounts() {
-    HashMap<Object, Double> countMap = new HashMap<Object, Double>();
+  @Override
+public HashMap<Object, Double> getCounts() {
+    HashMap<Object, Double> countMap = new HashMap<>();
     for (Entry<Object, Integer> entry : _indexMap.entrySet()) {
       Object category = entry.getKey();
       Integer index = entry.getValue();
@@ -61,18 +60,6 @@ public class ArrayCategoricalTarget extends Target<ArrayCategoricalTarget> imple
     return Histogram.TargetType.categorical;
   }
   
-  @Override
-  protected void addJSON(JSONArray binJSON, DecimalFormat format) {
-    JSONObject counts = new JSONObject();
-    for (Entry<Object,Integer> categoryIndex : _indexMap.entrySet()) {
-      Object category = categoryIndex.getKey();
-      int index = categoryIndex.getValue();
-      double count = _target[index];
-      counts.put(category, Utils.roundNumber(count, format));
-    }
-    binJSON.add(counts);
-  }
-
   @Override
   protected void appendTo(final Appendable appendable, final DecimalFormat format) throws IOException {
     if (appendable == null) {
@@ -112,7 +99,7 @@ public class ArrayCategoricalTarget extends Target<ArrayCategoricalTarget> imple
   @Override
   protected ArrayCategoricalTarget clone() {
     ArrayCategoricalTarget rct = new ArrayCategoricalTarget(_indexMap, _missingCount);
-    rct._target = (double[]) _target.clone();
+    rct._target = _target.clone();
     return rct;
   }
 

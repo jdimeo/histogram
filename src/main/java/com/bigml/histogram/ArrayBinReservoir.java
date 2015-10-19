@@ -1,3 +1,4 @@
+// CHECKSTYLE:OFF
 /**
  * Copyright 2013 BigML
  * Licensed under the Apache License, Version 2.0
@@ -16,11 +17,11 @@ import java.util.Collections;
  * of bins in the histogram. For histograms with more bins, the TreeBinReservoir
  * class offers faster insert performance.
  */
-public class ArrayBinReservoir <T extends Target> extends BinReservoir<T> {
+public class ArrayBinReservoir <T extends Target<T>> extends BinReservoir<T> {
 
   public ArrayBinReservoir(int maxBins, boolean weightGaps, Long freezeThreshold) {
     super(maxBins, weightGaps, freezeThreshold);
-    _bins = new ArrayList<Bin<T>>();
+    _bins = new ArrayList<>();
   }
 
   @Override
@@ -30,7 +31,7 @@ public class ArrayBinReservoir <T extends Target> extends BinReservoir<T> {
     if (index >= 0) {
       _bins.get(index).sumUpdate(bin);
     } else {
-      if (isFrozen()) {
+      if (isFrozen() && _bins.size() == getMaxBins()) {
         int prevIndex = Math.abs(index) - 2;
         int nextIndex = prevIndex + 1;
         double prevDist = (prevIndex >= 0) ? 
@@ -60,35 +61,33 @@ public class ArrayBinReservoir <T extends Target> extends BinReservoir<T> {
 
   @Override
   public Bin<T> get(double p) {
-    int index = Collections.binarySearch(_bins, new Bin(p, 0, null));
+    int index = Collections.binarySearch(_bins, new Bin<T>(p, 0, null));
     return (index >= 0) ? _bins.get(index) : null;
   }
 
   @Override
   public Bin<T> floor(double p) {
-    int index = Collections.binarySearch(_bins, new Bin(p, 0, null));
+    int index = Collections.binarySearch(_bins, new Bin<T>(p, 0, null));
     if (index >= 0) {
       return _bins.get(index);
-    } else {
-      index = Math.abs(index) - 2;
-      return (index >= 0) ? _bins.get(index) : null;
     }
+	index = Math.abs(index) - 2;
+      return (index >= 0) ? _bins.get(index) : null;
   }
 
   @Override
   public Bin<T> ceiling(double p) {
-    int index = Collections.binarySearch(_bins, new Bin(p, 0, null));
+    int index = Collections.binarySearch(_bins, new Bin<T>(p, 0, null));
     if (index >= 0) {
       return _bins.get(index);
-    } else {
-      index = Math.abs(index) - 1;
-      return (index < _bins.size()) ? _bins.get(index) : null;
     }
+	index = Math.abs(index) - 1;
+      return (index < _bins.size()) ? _bins.get(index) : null;
   }
 
   @Override
   public Bin<T> lower(double p) {
-    int index = Collections.binarySearch(_bins, new Bin(p, 0, null));
+    int index = Collections.binarySearch(_bins, new Bin<T>(p, 0, null));
     if (index >= 0) {
       index--;
     } else {
@@ -99,7 +98,7 @@ public class ArrayBinReservoir <T extends Target> extends BinReservoir<T> {
 
   @Override
   public Bin<T> higher(double p) {
-    int index = Collections.binarySearch(_bins, new Bin(p, 0, null));
+    int index = Collections.binarySearch(_bins, new Bin<T>(p, 0, null));
     if (index >= 0) {
       index++;
     } else {

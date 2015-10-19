@@ -1,3 +1,4 @@
+// CHECKSTYLE:OFF
 /**
  * Copyright 2013 BigML
  * Licensed under the Apache License, Version 2.0
@@ -6,7 +7,6 @@
 package com.bigml.histogram;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +15,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.TreeMap;
-import org.json.simple.JSONArray;
 
 /**
  * Implements a Histogram as defined by the <a
@@ -35,7 +34,7 @@ import org.json.simple.JSONArray;
  *
  * @author Adam Ashenfelter (ashenfelter@bigml.com)
  */
-public class Histogram<T extends Target> implements Serializable {
+public class Histogram<T extends Target<T>> {
 
   public static final String DEFAULT_FORMAT_STRING = "#.#####";
   public static final int RESERVOIR_THRESHOLD = 256;
@@ -60,9 +59,9 @@ public class Histogram<T extends Target> implements Serializable {
           Long freezeThreshold, BinReservoirType reservoirType) {
     if (reservoirType == BinReservoirType.tree ||
             (reservoirType == null && maxBins > RESERVOIR_THRESHOLD)) {
-      _bins = new TreeBinReservoir<T>(maxBins, countWeightedGaps, freezeThreshold);
+      _bins = new TreeBinReservoir<>(maxBins, countWeightedGaps, freezeThreshold);
     } else {
-      _bins = new ArrayBinReservoir<T>(maxBins, countWeightedGaps, freezeThreshold);
+      _bins = new ArrayBinReservoir<>(maxBins, countWeightedGaps, freezeThreshold);
     }
     _decimalFormat = new DecimalFormat(DEFAULT_FORMAT_STRING);
     _missingCount = 0;
@@ -72,7 +71,7 @@ public class Histogram<T extends Target> implements Serializable {
     if (categories != null && !categories.isEmpty()) {
       _targetType = TargetType.categorical;
       _groupTypes = null;
-      _indexMap = new HashMap<Object, Integer>();
+      _indexMap = new HashMap<>();
       for (Object category : categories) {
         if (_indexMap.get(category) == null) {
           _indexMap.put(category, _indexMap.size());
@@ -80,7 +79,7 @@ public class Histogram<T extends Target> implements Serializable {
       }
     } else if (groupTypes != null && !groupTypes.isEmpty()) {
       _targetType = TargetType.group;
-      _groupTypes = new ArrayList<TargetType>(groupTypes);
+      _groupTypes = new ArrayList<>(groupTypes);
     } else {
       _groupTypes = null;
       _indexMap = null;
@@ -163,7 +162,7 @@ public class Histogram<T extends Target> implements Serializable {
   public Histogram<T> insertCategorical(Double point, Object target)
           throws MixedInsertException {
     checkType(TargetType.categorical);
-    Target catTarget;
+    Target<?> catTarget;
     if (_indexMap == null) {
       catTarget = new MapCategoricalTarget(target);
     } else {
@@ -206,8 +205,8 @@ public class Histogram<T extends Target> implements Serializable {
     GroupTarget groupTarget = new GroupTarget(group, _groupTypes);
 
     if (_groupTypes == null) {
-      _groupTypes = new ArrayList<TargetType>();
-      for (Target t : groupTarget.getGroupTarget()) {
+      _groupTypes = new ArrayList<>();
+      for (Target<?> t : groupTarget.getGroupTarget()) {
         _groupTypes.add(t.getTargetType());
       }
     }
@@ -304,6 +303,7 @@ public class Histogram<T extends Target> implements Serializable {
    *
    * @param p the sum point
    */
+  @SuppressWarnings("unchecked")
   public SumResult<T> extendedSum(double p) throws SumOutOfRangeException {
     SumResult<T> result;
     
@@ -318,34 +318,34 @@ public class Histogram<T extends Target> implements Serializable {
     double binMax = _bins.last().getMean();
 
     if (p < _minimum) {
-      result = new SumResult<T>(0, (T) _bins.first().getTarget().init());
+      result = new SumResult<>(0, _bins.first().getTarget().init());
     } else if (p >= _maximum) {
-      result = new SumResult<T>(getTotalCount(), getTotalTargetSum());
+      result = new SumResult<>(getTotalCount(), getTotalTargetSum());
     } else if (p == binMax) {
       Bin<T> lastBin = _bins.last();
 
       double totalCount = this.getTotalCount();
       double count = totalCount - (lastBin.getCount() / 2d);
-      T targetSum = (T) getTotalTargetSum().sum(lastBin.getTarget().clone().mult(-0.5d));
+      T targetSum = getTotalTargetSum().sum(lastBin.getTarget().clone().mult(-0.5d));
 
-      result = new SumResult<T>(count, targetSum);
+      result = new SumResult<>(count, targetSum);
     } else {
-      T emptyTarget = (T) _bins.first().getTarget().init();
+      T emptyTarget = _bins.first().getTarget().init();
       Bin<T> bin_i = _bins.floor(p);
       if (bin_i == null) {
-        bin_i = new Bin(_minimum, 0, emptyTarget.clone());
+        bin_i = new Bin<>(_minimum, 0, emptyTarget.clone());
       }
       
       Bin<T> bin_i1 = _bins.higher(p);
       if (bin_i1 == null) {
-        bin_i1 = new Bin(_maximum, 0, emptyTarget.clone());
+        bin_i1 = new Bin<>(_maximum, 0, emptyTarget.clone());
       }
 
       double prevCount;
       T prevTargetSum;
       if (bin_i.getMean() == _minimum) {
         prevCount = _bins.first().getCount() / 2;
-        prevTargetSum = (T) _bins.first().getTarget().clone().mult(0.5);
+        prevTargetSum = _bins.first().getTarget().clone().mult(0.5);
       } else {
         SumResult<T> prevSumResult = getPointToSumMap().get(bin_i.getMean());
         prevCount = prevSumResult.getCount();
@@ -362,7 +362,7 @@ public class Histogram<T extends Target> implements Serializable {
 
       T targetSum = (T) computeSum(bpRatio, prevTargetSum, bin_i.getTarget(), bin_i1.getTarget());
 
-      result = new SumResult<T>(countSum, targetSum);
+      result = new SumResult<>(countSum, targetSum);
     }
 
     return result;
@@ -385,15 +385,16 @@ public class Histogram<T extends Target> implements Serializable {
    *
    * @param p the density estimate point
    */
+  @SuppressWarnings("unchecked")
   public SumResult<T> extendedDensity(double p) {
-    T emptyTarget = (T) _bins.first().getTarget().init();
+    T emptyTarget = _bins.first().getTarget().init();
     double countDensity;
     T targetDensity;
 
     Bin<T> exact = _bins.get(p);
     if (p < _minimum || p > _maximum) {
       countDensity = 0;
-      targetDensity = (T) emptyTarget.clone();
+      targetDensity = emptyTarget.clone();
     } else if (p == _minimum && p == _maximum) {
       countDensity = Double.POSITIVE_INFINITY;
       targetDensity = emptyTarget;
@@ -404,16 +405,16 @@ public class Histogram<T extends Target> implements Serializable {
       SumResult<T> lowerResult = extendedDensity(lower);
       SumResult<T> higherResult = extendedDensity(higher);
       countDensity = (lowerResult.getCount() + higherResult.getCount()) / 2;
-      targetDensity = (T) lowerResult.getTargetSum().clone().sum(higherResult.getTargetSum()).mult(0.5);
+      targetDensity = lowerResult.getTargetSum().clone().sum(higherResult.getTargetSum()).mult(0.5);
     } else {
       Bin<T> lowerBin = _bins.lower(p);
       if (lowerBin == null) {
-        lowerBin = new Bin(_minimum, 0, emptyTarget.clone());
+        lowerBin = new Bin<>(_minimum, 0, emptyTarget.clone());
       }
         
       Bin<T> higherBin = _bins.higher(p);
       if (higherBin == null) {
-        higherBin = new Bin(_maximum, 0, emptyTarget.clone());
+        higherBin = new Bin<>(_maximum, 0, emptyTarget.clone());
       }
 
       double bDiff = p - lowerBin.getMean();
@@ -430,7 +431,7 @@ public class Histogram<T extends Target> implements Serializable {
               lowerBin.getTarget(), higherBin.getTarget());      
     }
 
-    return new SumResult<T>(countDensity, targetDensity);
+    return new SumResult<>(countDensity, targetDensity);
   }
 
   /**
@@ -441,7 +442,7 @@ public class Histogram<T extends Target> implements Serializable {
    */
   public T averageTarget(double p) {
     SumResult<T> density = extendedDensity(p);
-    return (T) density.getTargetSum().mult(1 / density.getCount());
+    return density.getTargetSum().mult(1 / density.getCount());
   }
 
   /**
@@ -451,22 +452,22 @@ public class Histogram<T extends Target> implements Serializable {
    * @param numberOfBins the desired number of uniform bins
    */
   public ArrayList<Double> uniform(int numberOfBins) {
-    ArrayList<Double> uniformBinSplits = new ArrayList<Double>();
+    ArrayList<Double> uniformBinSplits = new ArrayList<>();
     double totalCount = getTotalCount();
 
     if (totalCount > 0) {
-      double gapSize = totalCount / (double) numberOfBins;
+      double gapSize = totalCount / numberOfBins;
       double minGapSize = Math.max(_bins.first().getCount(),
               _bins.last().getCount()) / 2;
 
       int splits = numberOfBins;
       if (gapSize < minGapSize) {
         splits = (int) (totalCount / minGapSize);
-        gapSize = totalCount / (double) splits;
+        gapSize = totalCount / splits;
       }
 
       for (int i = 1; i < splits; i++) {
-        double targetSum = (double) i * gapSize;
+        double targetSum = i * gapSize;
         double binSplit = findPointForSum(targetSum);
         uniformBinSplits.add(binSplit);
       }
@@ -480,12 +481,12 @@ public class Histogram<T extends Target> implements Serializable {
    * @param percentiles the desired percentiles
    */
   public HashMap<Double, Double> percentiles(Double... percentiles) {
-    HashMap<Double, Double> results = new HashMap<Double, Double>();
+    HashMap<Double, Double> results = new HashMap<>();
     double totalCount = getTotalCount();
 
     if (totalCount > 0) {
       for (double percentile : percentiles) {
-        double targetSum = (double) percentile * totalCount;
+        double targetSum = percentile * totalCount;
         results.put(percentile, findPointForSum(targetSum));
       }
     }
@@ -498,7 +499,7 @@ public class Histogram<T extends Target> implements Serializable {
    *
    * @param histogram the histogram to be merged
    */
-  public Histogram merge(Histogram<T> histogram) throws MixedInsertException {
+  public Histogram<T> merge(Histogram<T> histogram) throws MixedInsertException {
     if (_indexMap == null && histogram._indexMap != null) {
       if (getBins().isEmpty()) {
         _indexMap = histogram._indexMap;
@@ -512,11 +513,11 @@ public class Histogram<T extends Target> implements Serializable {
     } else if (!histogram.getBins().isEmpty()) {
       checkType(histogram.getTargetType());
       for (Bin<T> bin : histogram.getBins()) {
-        Bin<T> newBin = new Bin<T>(bin);
+        Bin<T> newBin = new Bin<>(bin);
         if (_indexMap != null) {
           ((ArrayCategoricalTarget) newBin.getTarget()).setIndexMap(_indexMap);
         }
-        _bins.insert(new Bin<T>(bin));
+        _bins.insert(new Bin<>(bin));
       }
       _bins.merge();
     }
@@ -535,7 +536,7 @@ public class Histogram<T extends Target> implements Serializable {
     }
 
     if (_missingTarget == null) {
-      _missingTarget = (T) histogram.getMissingTarget();
+      _missingTarget = histogram.getMissingTarget();
     } else if (histogram.getMissingTarget() != null) {
       _missingTarget.sum(histogram.getMissingTarget());
     }
@@ -555,23 +556,6 @@ public class Histogram<T extends Target> implements Serializable {
    */
   public Collection<Bin<T>> getBins() {
     return _bins.getBins();
-  }
-
-  public JSONArray toJSON(DecimalFormat format) {
-    JSONArray bins = new JSONArray();
-    for (Bin<T> bin : getBins()) {
-      bins.add(bin.toJSON(format));
-    }
-    return bins;
-  }
-
-  public String toJSONString(DecimalFormat format) {
-    return toJSON(format).toJSONString();
-  }
-
-  @Override
-  public String toString() {
-    return toJSONString(_decimalFormat);
   }
 
   /**
@@ -610,9 +594,8 @@ public class Histogram<T extends Target> implements Serializable {
   public T getTotalTargetSum() {
     if (_bins.getBins().isEmpty()) {
       return null;
-    } else {
-      return getPointToSumMap().get(_maximum).getTargetSum();
     }
+	return getPointToSumMap().get(_maximum).getTargetSum();
   }
 
   public long getMissingCount() {
@@ -632,7 +615,7 @@ public class Histogram<T extends Target> implements Serializable {
    */
   public Histogram<T> insertMissing(long count, T target) {
     if (_missingTarget == null) {
-      _missingTarget = (T) target;
+      _missingTarget = target;
     } else {
       _missingTarget.sum(target);
     }
@@ -661,7 +644,7 @@ public class Histogram<T extends Target> implements Serializable {
    *
    * @param minimum the minimum value observed by the histogram
    */
-  public Histogram setMinimum(Double minimum) {
+  public Histogram<T> setMinimum(Double minimum) {
     _minimum = minimum;
     return this;
   }
@@ -673,7 +656,7 @@ public class Histogram<T extends Target> implements Serializable {
    *
    * @param maximum the maximum value observed by the histogram
    */
-  public Histogram setMaximum(Double maximum) {
+  public Histogram<T> setMaximum(Double maximum) {
     _maximum = maximum;
     return this;
   }
@@ -685,12 +668,13 @@ public class Histogram<T extends Target> implements Serializable {
       throw new MixedInsertException();
     }
   }
-
-  private void processPointTarget(Double point, Target target) {
+  
+  @SuppressWarnings("unchecked")
+  private void processPointTarget(Double point, Target<?> target) {
     if (point == null) {
       insertMissing(1, (T) target);
     } else {
-      insertBin(new Bin(point, 1, target));
+      insertBin(new Bin<>(point, 1, (T) target));
     }
   }
 
@@ -700,29 +684,29 @@ public class Histogram<T extends Target> implements Serializable {
   }
   
   private void refreshCacheMaps() {
-    T emptyTarget = (T) _bins.first().getTarget().init();
+    T emptyTarget = _bins.first().getTarget().init();
 
-    _pointToSumMap = new TreeMap<Double, SumResult<T>>();
-    _pointToSumMap.put(_minimum, new SumResult<T>(0d, emptyTarget));
+    _pointToSumMap = new TreeMap<>();
+    _pointToSumMap.put(_minimum, new SumResult<>(0d, emptyTarget));
     
-    _sumToBinMap =  new TreeMap<Double, Bin<T>>();
-    Bin<T> minBin = new Bin(_minimum, 0d, emptyTarget);
-    Bin<T> maxBin = new Bin(_maximum, 0d, emptyTarget);
+    _sumToBinMap =  new TreeMap<>();
+    Bin<T> minBin = new Bin<>(_minimum, 0d, emptyTarget);
+    Bin<T> maxBin = new Bin<>(_maximum, 0d, emptyTarget);
     _sumToBinMap.put(0d, minBin);
-    _sumToBinMap.put((double) getTotalCount(), maxBin);
-
-    SumResult<T> sum = new SumResult<T>(0d, (T) emptyTarget.init());
+    _sumToBinMap.put(getTotalCount(), maxBin);
+    
+    SumResult<T> sum = new SumResult<>(0d, emptyTarget.init());
     Bin<T> lastBin = minBin;
     for (Bin<T> bin : getBins()) {
-      sum = new SumResult<T>(sum.getCount() + (bin.getCount() + lastBin.getCount()) / 2,
-              (T) sum.getTargetSum().clone().sum(bin.getTarget().clone().sum(lastBin.getTarget()).mult(0.5)));
+      sum = new SumResult<>(sum.getCount() + (bin.getCount() + lastBin.getCount()) / 2,
+              sum.getTargetSum().clone().sum(bin.getTarget().clone().sum(lastBin.getTarget()).mult(0.5)));
       _sumToBinMap.put(sum.getCount(), bin);
       _pointToSumMap.put(bin.getMean(), sum);
       lastBin = bin;
     }
     
-    SumResult<T> lastSumResult = new SumResult<T>(sum.getCount() + lastBin.getCount() / 2, 
-               (T) sum.getTargetSum().clone().sum(lastBin.getTarget().clone().mult(0.5)));
+    SumResult<T> lastSumResult = new SumResult<>(sum.getCount() + lastBin.getCount() / 2, 
+               sum.getTargetSum().clone().sum(lastBin.getTarget().clone().mult(0.5)));
     _pointToSumMap.put(_maximum, lastSumResult);
   }
   
@@ -753,10 +737,10 @@ public class Histogram<T extends Target> implements Serializable {
    * s = p' + r*i - r^2/2*i + r^2/2*i1
    * s = p' + (r - r^2/2)*i + r^2/2*i1
    */
-  private <U extends Target> Target computeSum(double r, U p, U i, U i1) {
+  private static <U extends Target<U>> Target<U> computeSum(double r, U p, U i, U i1) {
     double i1Term = 0.5 * r * r;
     double iTerm = r - i1Term;
-    return (U) p.clone().sum(i.clone().mult(iTerm)).sum(i1.clone().mult(i1Term));
+    return p.clone().sum(i.clone().mult(iTerm)).sum(i1.clone().mult(i1Term));
   }
 
   /*
@@ -765,7 +749,7 @@ public class Histogram<T extends Target> implements Serializable {
    * r = (x - m) / (m1 - m)
    * s_dx = i - (i1 - i) * (x - m) / (m1 - m)
    */
-  private <U extends Target> Target computeDensity(double r, double m, double m1, U i, U i1) {
+  private static <U extends Target<U>> Target<U> computeDensity(double r, double m, double m1, U i, U i1) {
     return i.clone().sum(i1.clone().sum(i.clone().mult(-1)).mult(r)).mult(1 / (m1 - m));
   }
 
@@ -825,14 +809,14 @@ public class Histogram<T extends Target> implements Serializable {
    */
   private static ArrayList<Double> solveQuadratic(double a, double b, double c) {
     double discriminantSquareRoot = Math.sqrt(Math.pow(b, 2) - (4 * a * c));
-    ArrayList<Double> roots = new ArrayList<Double>();
+    ArrayList<Double> roots = new ArrayList<>();
     roots.add((-b + discriminantSquareRoot) / (2 * a));
     roots.add((-b - discriminantSquareRoot) / (2 * a));
     return roots;
   }
 
-  public enum BinReservoirType {tree, array};
-  public enum TargetType {none, numeric, categorical, group, histogram};
+  public enum BinReservoirType {tree, array}
+  public enum TargetType {none, numeric, categorical, group, histogram}
   private TargetType _targetType;
   private final BinReservoir<T> _bins;
   private final DecimalFormat _decimalFormat;

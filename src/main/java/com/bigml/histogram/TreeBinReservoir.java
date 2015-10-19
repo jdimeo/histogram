@@ -18,13 +18,13 @@ import java.util.TreeSet;
  * the number of bins in the histogram. For histograms with fewer bins, the
  * ArrayBinReservoir class offers faster insert performance.
  */
-public class TreeBinReservoir<T extends Target> extends BinReservoir<T> {
+public class TreeBinReservoir<T extends Target<T>> extends BinReservoir<T> {
 
   public TreeBinReservoir(int maxBins, boolean weightGaps, Long freezeThreshold) {
     super(maxBins, weightGaps, freezeThreshold);
-    _bins = new TreeMap<Double, Bin<T>>();
-    _gaps = new TreeSet<Gap<T>>();
-    _binsToGaps = new HashMap<Double, Gap<T>>();
+    _bins = new TreeMap<>();
+    _gaps = new TreeSet<>();
+    _binsToGaps = new HashMap<>();
   }
   
   @Override
@@ -134,7 +134,7 @@ public class TreeBinReservoir<T extends Target> extends BinReservoir<T> {
   }
 
   private void updateGaps(Bin<T> prev, Bin<T> next) {
-    Gap<T> newGap = new Gap<T>(prev, next, gapWeight(prev, next));
+    Gap<T> newGap = new Gap<>(prev, next, gapWeight(prev, next));
 
     Gap<T> prevGap = _binsToGaps.get(prev.getMean());
     if (prevGap != null) {
@@ -148,9 +148,8 @@ public class TreeBinReservoir<T extends Target> extends BinReservoir<T> {
   private Bin<T> binFromEntry(Entry<Double, Bin<T>> entry) {
     if (entry == null) {
       return null;
-    } else {
-      return entry.getValue();
     }
+	return entry.getValue();
   }
   
   private final TreeMap<Double, Bin<T>> _bins;

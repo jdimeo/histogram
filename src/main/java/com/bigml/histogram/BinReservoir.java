@@ -1,3 +1,4 @@
+// CHECKSTYLE:OFF
 /**
  * Copyright 2013 BigML
  * Licensed under the Apache License, Version 2.0
@@ -5,10 +6,9 @@
  */
 package com.bigml.histogram;
 
-import java.io.Serializable;
 import java.util.Collection;
 
-public abstract class BinReservoir<T extends Target> implements Serializable {
+public abstract class BinReservoir<T extends Target<T>> {
   public BinReservoir(int maxBins, boolean weightGaps, Long freezeThreshold) {
     _maxBins = maxBins;
     _weightGaps = weightGaps;

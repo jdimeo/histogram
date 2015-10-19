@@ -1,3 +1,4 @@
+// CHECKSTYLE:OFF
 /**
  * Copyright 2013 BigML
  * Licensed under the Apache License, Version 2.0
@@ -5,13 +6,10 @@
  */
 package com.bigml.histogram;
 
-import org.json.simple.JSONArray;
-
 import java.io.IOException;
-import java.io.Serializable;
 import java.text.DecimalFormat;
 
-public class Bin<T extends Target> implements Comparable<Bin>, Serializable {
+public class Bin<T extends Target<T>> implements Comparable<Bin<T>> {
 
   public Bin(double mean, double count, T target) {
     /* Hack to avoid Java's negative zero */
@@ -25,15 +23,7 @@ public class Bin<T extends Target> implements Comparable<Bin>, Serializable {
   }
 
   public Bin(Bin<T> bin) {
-    this(bin.getMean(), bin.getCount(), (T) bin.getTarget().clone());
-  }
-
-  public JSONArray toJSON(DecimalFormat format) {
-    JSONArray binJSON = new JSONArray();
-    binJSON.add(Utils.roundNumber(_mean, format));
-    binJSON.add(Utils.roundNumber(_count, format));
-    _target.addJSON(binJSON, format);
-    return binJSON;
+    this(bin.getMean(), bin.getCount(), bin.getTarget().clone());
   }
 
   public double getCount() {
@@ -45,30 +35,25 @@ public class Bin<T extends Target> implements Comparable<Bin>, Serializable {
   }
 
   public double getWeight() {
-    return _mean * (double) _count;
+    return _mean * _count;
   }
 
   public T getTarget() {
     return _target;
   }
 
-  public void sumUpdate(Bin bin) {
+  public void sumUpdate(Bin<T> bin) {
     _count += bin.getCount();
     _target.sum(bin.getTarget());
   }
 
-  public void update(Bin bin) throws BinUpdateException {
+  public void update(Bin<T> bin) throws BinUpdateException {
     if (_mean != bin.getMean()) {
       throw new BinUpdateException("Bins must have matching means to update");
     }
 
     _count = bin.getCount();
-    _target = (T) bin.getTarget();
-  }
-
-  @Override
-  public String toString() {
-    return toJSON(new DecimalFormat(Histogram.DEFAULT_FORMAT_STRING)).toJSONString();
+    _target = bin.getTarget();
   }
 
   /**
@@ -93,16 +78,17 @@ public class Bin<T extends Target> implements Comparable<Bin>, Serializable {
     appendable.append("\n");
   }
 
-  public Bin combine(Bin<T> bin) {
+  public Bin<T> combine(Bin<T> bin) {
     double count = getCount() + bin.getCount();
-    double mean = (getWeight() + bin.getWeight()) / (double) count;
-    T newTarget = (T) _target.init();
+    double mean = (getWeight() + bin.getWeight()) / count;
+    T newTarget = _target.init();
     newTarget.sum(_target);
     newTarget.sum(bin.getTarget());
-    return new Bin<T>(mean, count, newTarget);
+    return new Bin<>(mean, count, newTarget);
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public boolean equals(Object obj) {
     if (obj == null) {
       return false;
@@ -125,7 +111,8 @@ public class Bin<T extends Target> implements Comparable<Bin>, Serializable {
   private final double _mean;
   private double _count;
 
-  public int compareTo(Bin o) {
+  @Override
+  public int compareTo(Bin<T> o) {
     return Double.compare(getMean(), o.getMean());
   }
 }

@@ -1,3 +1,4 @@
+// CHECKSTYLE:OFF
 /**
  * Copyright 2013 BigML
  * Licensed under the Apache License, Version 2.0
@@ -5,9 +6,9 @@
  */
 package com.bigml.histogram;
 
-public class MixedInsertException extends Exception {
+public class BinUpdateException extends Exception {
 
-  public MixedInsertException() {
-    super("Can't mix insert types");
+  public BinUpdateException(String message) {
+    super(message);
   }
 }

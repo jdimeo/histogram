@@ -1,3 +1,4 @@
+// CHECKSTYLE:OFF
 /**
  * Copyright 2013 BigML
  * Licensed under the Apache License, Version 2.0
@@ -5,9 +6,7 @@
  */
 package com.bigml.histogram;
 
-import org.json.simple.JSONArray;
-
-public class Gap<T extends Target> implements Comparable<Gap> {
+public class Gap<T extends Target<T>> implements Comparable<Gap<T>> {
 
   public Gap(Bin<T> startBin, Bin<T> endBin, double weight) {
     _startBin = startBin;
@@ -32,16 +31,7 @@ public class Gap<T extends Target> implements Comparable<Gap> {
   }
   
   @Override
-  public String toString() {
-    JSONArray jsonArray = new JSONArray();
-    jsonArray.add(_weight);
-    jsonArray.add(_startBin);
-    jsonArray.add(_endBin);
-    return jsonArray.toJSONString();
-  }
-  
-  @Override
-  public int compareTo(Gap t) {
+  public int compareTo(Gap<T> t) {
     int result = Double.compare(this.getSpace(), t.getSpace());
     if (result == 0) {
       result = getStartBin().compareTo(t.getStartBin());
@@ -49,7 +39,7 @@ public class Gap<T extends Target> implements Comparable<Gap> {
     return result;
   }
 
-  @Override
+  @Override @SuppressWarnings("unchecked")
   public boolean equals(Object obj) {
     if (obj == null) {
       return false;
@@ -57,7 +47,7 @@ public class Gap<T extends Target> implements Comparable<Gap> {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    final Gap other = (Gap) obj;
+	final Gap<T> other = (Gap<T>) obj;
     if (Double.doubleToLongBits(this._weight) != Double.doubleToLongBits(other._weight)) {
       return false;
     }

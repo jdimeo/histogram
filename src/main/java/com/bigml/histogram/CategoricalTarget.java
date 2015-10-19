@@ -1,3 +1,4 @@
+// CHECKSTYLE:OFF
 /**
  * Copyright 2013 BigML
  * Licensed under the Apache License, Version 2.0
@@ -5,9 +6,8 @@
  */
 package com.bigml.histogram;
 
-public class SumOutOfRangeException extends Exception {
+import java.util.Map;
 
-  public SumOutOfRangeException(String string) {
-    super(string);
-  }
+public interface CategoricalTarget {
+  Map<Object, Double> getCounts();
 }

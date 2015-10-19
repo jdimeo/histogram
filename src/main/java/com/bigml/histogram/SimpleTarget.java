@@ -1,3 +1,4 @@
+// CHECKSTYLE:OFF
 /**
  * Copyright 2013 BigML
  * Licensed under the Apache License, Version 2.0
@@ -8,7 +9,6 @@ package com.bigml.histogram;
 import com.bigml.histogram.Histogram.TargetType;
 import java.io.IOException;
 import java.text.DecimalFormat;
-import org.json.simple.JSONArray;
 
 public class SimpleTarget extends Target<SimpleTarget> {
   public static final SimpleTarget TARGET = new SimpleTarget();
@@ -22,11 +22,6 @@ public class SimpleTarget extends Target<SimpleTarget> {
   @Override
   public TargetType getTargetType() {
     return Histogram.TargetType.none;
-  }
-
-  @Override
-  protected void addJSON(JSONArray binJSON, DecimalFormat format) {
-      // empty
   }
 
   @Override

@@ -1,3 +1,4 @@
+// CHECKSTYLE:OFF
 /**
  * Copyright 2013 BigML
  * Licensed under the Apache License, Version 2.0
@@ -11,20 +12,20 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import org.json.simple.JSONArray;
 
 public class GroupTarget extends Target<GroupTarget> {
+	@SuppressWarnings("rawtypes")
+	public GroupTarget(ArrayList<Target> group) {
+		_target = group;
+	}
   
-  public GroupTarget(ArrayList<Target> group) {
-    _target = group;
-  }
-  
+  @SuppressWarnings("rawtypes")
   public GroupTarget(Collection<Object> values, Collection<TargetType> types) {
-    ArrayList<Target> group = new ArrayList<Target>();
+    ArrayList<Target> group = new ArrayList<>();
     
     if (types == null) {
       for (Object value : values) {
-        Target target;
+        Target<?> target;
         if (value instanceof Number) {
           Double tVal = (value == null ? null : ((Number) value).doubleValue());
           target = new NumericTarget(tVal);
@@ -34,7 +35,7 @@ public class GroupTarget extends Target<GroupTarget> {
         group.add(target);
       }
     } else {
-      Target target;
+      Target<?> target;
       Iterator<Object> valueIter = values.iterator();
       Iterator<TargetType> typeIter = types.iterator();
       while (valueIter.hasNext()) {
@@ -52,6 +53,7 @@ public class GroupTarget extends Target<GroupTarget> {
     _target = group;
   }
   
+  @SuppressWarnings("rawtypes")
   public ArrayList<Target> getGroupTarget() {
     return _target;
   }
@@ -68,15 +70,6 @@ public class GroupTarget extends Target<GroupTarget> {
   }
 
   @Override
-  protected void addJSON(JSONArray binJSON, DecimalFormat format) {
-    JSONArray targetsJSON = new JSONArray();
-    for (Target target : _target) {
-      target.addJSON(targetsJSON, format);
-    }
-    binJSON.add(targetsJSON);
-  }
-
-  @Override
   protected void appendTo(final Appendable appendable, final DecimalFormat format) throws IOException {
     if (appendable == null) {
       throw new NullPointerException("appendable must not be null");
@@ -84,7 +77,7 @@ public class GroupTarget extends Target<GroupTarget> {
     if (format == null) {
       throw new NullPointerException("format must not be null");
     }
-    for (Target target : _target) {
+    for (Target<?> target : _target) {
       target.appendTo(appendable, format);
       appendable.append("\t");
     }
@@ -100,7 +93,7 @@ public class GroupTarget extends Target<GroupTarget> {
 
   @Override
   protected GroupTarget mult(double multiplier) {
-    for (Target target : _target) {
+    for (Target<?> target : _target) {
       target.mult(multiplier);
     }    
     return this;
@@ -108,21 +101,22 @@ public class GroupTarget extends Target<GroupTarget> {
 
   @Override
   protected GroupTarget clone() {
-    ArrayList<Target> newGroup = new ArrayList<Target>();
-    for (Target target : _target) {
+    ArrayList<Target<?>> newGroup = new ArrayList<>();
+    for (Target<?> target : _target) {
       newGroup.add(target.clone());
     }
-    return new GroupTarget(new ArrayList<Target>(newGroup));
+    return new GroupTarget(new ArrayList<>(newGroup));
   }
 
   @Override
   protected GroupTarget init() {
-    ArrayList<Target> newGroup = new ArrayList<Target>();
-    for (Target target : _target) {
+    ArrayList<Target<?>> newGroup = new ArrayList<>();
+    for (Target<?> target : _target) {
       newGroup.add(target.init());
     }
-    return new GroupTarget(new ArrayList<Target>(newGroup));
+    return new GroupTarget(new ArrayList<>(newGroup));
   }
   
+  @SuppressWarnings("rawtypes")
   private ArrayList<Target> _target;
 }
