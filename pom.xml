@@ -10,7 +10,7 @@
 	<artifactId>histogram-lite</artifactId>
 	<name>BigML's Streaming Histogram</name>
 	<description>Fork of BigML's Streaming Histogram with no additional dependencies (JSON removed)</description>
-	<version>4.0.0-SNAPSHOT</version>
+	<version>4.0.0</version>
 
 	<properties>
 		<scm>github.com</scm>
@@ -20,6 +20,6 @@
 		<developerConnection>scm:git:https://${scm}/jdimeo/histogram.git</developerConnection>
 		<connection>scm:git:http://${scm}/jdimeo/histogram.git</connection>
 		<url>http://${scm}/jdimeo/histogram</url>
-		<tag>HEAD</tag>
+		<tag>histogram-lite-4.0.0</tag>
 	</scm>
 </project>
