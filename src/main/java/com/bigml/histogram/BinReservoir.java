@@ -16,6 +16,10 @@ public abstract class BinReservoir<T extends Target<T>> {
     _totalCount = 0;
   }
   
+  public void freeze() {
+	  _freezeThreshold = _totalCount - 1L;
+  }
+  
   public int getMaxBins() {
     return _maxBins;
   }
@@ -61,6 +65,6 @@ public abstract class BinReservoir<T extends Target<T>> {
   
   private final int _maxBins;
   private final boolean _weightGaps;
-  private final Long _freezeThreshold;
+  private Long _freezeThreshold;
   private long _totalCount;
 }

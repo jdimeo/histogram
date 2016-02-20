@@ -222,11 +222,18 @@ public class Histogram<T extends Target<T>> {
    * @param bin the new bin
    */
   public Histogram<T> insertBin(Bin<T> bin) {
+	_autoFreezeCount++;
     if (_minimum == null || _minimum > bin.getMean()) {
       _minimum = bin.getMean();
+      _autoFreezeCount = 0L;
     }
     if (_maximum == null || _maximum < bin.getMean()) {
       _maximum = bin.getMean();
+      _autoFreezeCount = 0L;
+    }
+    
+    if (_autoFreezeThreshold != null && _autoFreezeCount > _autoFreezeThreshold && !_bins.isFrozen()) {
+    	_bins.freeze();
     }
     
     clearCacheMaps();
@@ -660,6 +667,17 @@ public class Histogram<T extends Target<T>> {
     _maximum = maximum;
     return this;
   }
+  
+  /**
+   * Sets the number of inserts after which, if the minimum and maximum do not
+   * change, this histogram's bins will be frozen. 
+   * @param autoFreezeThreshold the new auto freeze threshold
+   * @return this for method chaining
+   */
+  public Histogram<T> setAutoFreezeThreshold(Long autoFreezeThreshold) {
+	this._autoFreezeThreshold = autoFreezeThreshold;
+	return this;
+  }
 
   private void checkType(TargetType newType) throws MixedInsertException {
     if (_targetType == null) {
@@ -828,5 +846,6 @@ public class Histogram<T extends Target<T>> {
   private Double _maximum;
   private TreeMap<Double, Bin<T>> _sumToBinMap;
   private TreeMap<Double, SumResult<T>> _pointToSumMap;
-
+  private Long _autoFreezeThreshold;
+  private long _autoFreezeCount;
 }
